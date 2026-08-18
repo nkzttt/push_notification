@@ -12,9 +12,58 @@
   </head>
   <body>
     <h1>Push Notification Test</h1>
+    <button id="subscribe">Subscribe Push Notification</button>
+    <pre id="subscribed"></pre>
+
     <script>
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker.register("./sw.js");
+      }
+    </script>
+    <script>
+      const VAPID_PUBLIC_KEY =
+        "BKloSpMjjzZnwo8VYUU12mc3ThTqTVSl2djz4tXbYB0vhqxhRxV3v-4EKmfoOv9HzfxPIlfBgDWRKlVP8a9FZaM";
+
+      (async () => {
+        const registration = await navigator.serviceWorker.ready;
+
+        const subscription = await registration.pushManager.getSubscription();
+        if (subscription) {
+          displaySubscription(subscription);
+          return;
+        }
+
+        document
+          .querySelector("#subscribe")
+          .addEventListener("click", async () => {
+            const permission = await Notification.requestPermission();
+            if (permission !== "granted") {
+              window.alert("通知が許可されませんでした。");
+            } else {
+              const subscription = await registration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+              });
+              displaySubscription(subscription);
+            }
+          });
+      })();
+
+      function displaySubscription(subscription) {
+        document.querySelector("#subscribed").textContent = JSON.stringify(
+          subscription,
+          null,
+          2,
+        );
+      }
+
+      function urlBase64ToUint8Array(base64String) {
+        const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+        const base64 = (base64String + padding)
+          .replace(/-/g, "+")
+          .replace(/_/g, "/");
+        const rawData = atob(base64);
+        return Uint8Array.from([...rawData].map((char) => char.charCodeAt(0)));
       }
     </script>
   </body>
