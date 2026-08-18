@@ -1,0 +1,10 @@
+{
+  "name": "push_notification",
+  "private": true,
+  "scripts": {
+    "deploy": "vercel src --prod"
+  },
+  "devDependencies": {
+    "vercel": "^59.1.4"
+  }
+}
