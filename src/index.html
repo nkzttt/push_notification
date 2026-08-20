@@ -12,8 +12,11 @@
   </head>
   <body>
     <h1>Push Notification Test</h1>
-    <button id="subscribe">Subscribe Push Notification</button>
-    <pre id="subscribed"></pre>
+    <button id="subscribe" style="display: none">
+      Subscribe Push Notification
+    </button>
+    <pre id="subscribed" style="display: none">xxx</pre>
+    <button id="copy" style="display: none">Copy Subscription</button>
 
     <script>
       if ("serviceWorker" in navigator) {
@@ -33,28 +36,34 @@
           return;
         }
 
-        document
-          .querySelector("#subscribe")
-          .addEventListener("click", async () => {
-            const permission = await Notification.requestPermission();
-            if (permission !== "granted") {
-              window.alert("通知が許可されませんでした。");
-            } else {
-              const subscription = await registration.pushManager.subscribe({
-                userVisibleOnly: true,
-                applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
-              });
-              displaySubscription(subscription);
-            }
-          });
+        const subscribeElm = document.querySelector("#subscribe");
+        subscribeElm.style.display = "block";
+        subscribeElm.addEventListener("click", async () => {
+          const permission = await Notification.requestPermission();
+          if (permission !== "granted") {
+            window.alert("通知が許可されませんでした。");
+          } else {
+            const subscription = await registration.pushManager.subscribe({
+              userVisibleOnly: true,
+              applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+            });
+            displaySubscription(subscription);
+            subscribeElm.style.display = "none";
+          }
+        });
       })();
 
       function displaySubscription(subscription) {
-        document.querySelector("#subscribed").textContent = JSON.stringify(
-          subscription,
-          null,
-          2,
-        );
+        const subscribedElm = document.querySelector("#subscribed");
+        subscribedElm.style.display = "block";
+        subscribedElm.textContent = JSON.stringify(subscription, null, 2);
+        const copyBtn = document.querySelector("#copy");
+        copyBtn.style.display = "block";
+        copyBtn.addEventListener("click", async () => {
+          await navigator.clipboard.writeText(
+            JSON.stringify(subscription, null, 2),
+          );
+        });
       }
 
       function urlBase64ToUint8Array(base64String) {
